@@ -39,9 +39,11 @@
                             <tr>
                                 <th>Thumbnail</th>
                                 <th>Type</th>
-                                <th>View Count</th>
-                                <th>Subscriber Count</th>
-                                <th>Published Date</th>
+                                <th><a href="{{ route('youtube.search', array_merge(request()->query(), ['keyword' => $keyword, 'sort_by' => 'viewCount', 'sort_order' => ($sortBy == 'viewCount' && $sortOrder == 'asc') ? 'desc' : 'asc'])) }}">View Count @if($sortBy == 'viewCount') @if($sortOrder == 'asc') &triangle; @else &triangledown; @endif @endif</a></th>
+                                <th><a href="{{ route('youtube.search', array_merge(request()->query(), ['keyword' => $keyword, 'sort_by' => 'subscriberCount', 'sort_order' => ($sortBy == 'subscriberCount' && $sortOrder == 'asc') ? 'desc' : 'asc'])) }}">Subscriber Count @if($sortBy == 'subscriberCount') @if($sortOrder == 'asc') &triangle; @else &triangledown; @endif @endif</a></th>
+                                <th><a href="{{ route('youtube.search', array_merge(request()->query(), ['keyword' => $keyword, 'sort_by' => 'score', 'sort_order' => ($sortBy == 'score' && $sortOrder == 'asc') ? 'desc' : 'asc'])) }}">Score @if($sortBy == 'score') @if($sortOrder == 'asc') &triangle; @else &triangledown; @endif @endif</a></th>
+                                <th>Channel</th>
+                                <th><a href="{{ route('youtube.search', array_merge(request()->query(), ['keyword' => $keyword, 'sort_by' => 'publishedAt', 'sort_order' => ($sortBy == 'publishedAt' && $sortOrder == 'asc') ? 'desc' : 'asc'])) }}">Published Date @if($sortBy == 'publishedAt') @if($sortOrder == 'asc') &triangle; @else &triangledown; @endif @endif</a></th>
                                 <th>Link</th>
                             </tr>
                         </thead>
@@ -55,12 +57,17 @@
                                     <td>{{ stripos($video['title'], '#shorts') !== false ? 'Shorts' : 'Video' }}</td>
                                     <td>{{ number_format($video['viewCount']) }}</td>
                                     <td>{{ number_format($video['subscriberCount']) }}</td>
+                                    <td>{{ number_format($video['score'], 2) }}</td>
+                                    <td><a href="https://www.youtube.com/channel/{{ $video['channelId'] }}" target="_blank">{{ $video['channelTitle'] }}</a></td>
                                     <td>{{ $video['publishedAt'] }}</td>
                                     <td><a href="{{ $video['link'] }}" target="_blank" class="btn btn-sm btn-danger">Watch</a></td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                    <div class="d-flex justify-content-center">
+                        {{ $videos->links() }}
+                    </div>
                 </div>
             @else
                 <div class="alert alert-warning">No videos found for this keyword.</div>
