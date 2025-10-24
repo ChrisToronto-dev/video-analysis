@@ -29,14 +29,12 @@ class YouTubeController extends Controller
             $youtube = new Google_Service_YouTube($client);
 
             // 1. Search for up to 1000 videos by keyword
-            $publishedAfter = (new \DateTime('-3 days'))->format(\DateTime::RFC3339);
             for ($i = 0; $i < 20; $i++) { // 20 * 50 = 1000
                 $searchResponse = $youtube->search->listSearch('id,snippet', [
                     'q' => $keyword,
                     'maxResults' => 50,
                     'type' => 'video',
                     'order' => 'date',
-                    'publishedAfter' => $publishedAfter,
                     'pageToken' => $nextPageToken,
                 ]);
 
@@ -85,6 +83,11 @@ class YouTubeController extends Controller
                     break;
                 }
             }
+
+            // Filter videos where view count is less than subscriber count
+            $videosList = array_filter($videosList, function ($video) {
+                return ($video['viewCount'] ?? 0) >= ($video['subscriberCount'] ?? 0);
+            });
 
             // Calculate score and sort
             foreach ($videosList as &$video) {
