@@ -20,6 +20,12 @@ class YouTubeController extends Controller
         ]);
 
         $keyword = $request->input('keyword');
+        $videoType = $request->input('video_type', 'all');
+
+        if ($videoType === 'shorts') {
+            $keyword .= ' #shorts';
+        }
+
         $videosList = [];
         $nextPageToken = null;
 
@@ -89,6 +95,12 @@ class YouTubeController extends Controller
                 return ($video['viewCount'] ?? 0) >= ($video['subscriberCount'] ?? 0);
             });
 
+            if ($videoType === 'video') {
+                $videosList = array_filter($videosList, function ($video) {
+                    return stripos($video['title'], '#shorts') === false;
+                });
+            }
+
             // Calculate score and sort
             foreach ($videosList as &$video) {
                 $subscriberCount = $video['subscriberCount'] ?? 0;
@@ -134,7 +146,7 @@ class YouTubeController extends Controller
         $perPage = 100;
         $offset = ($page * $perPage) - $perPage;
         $paginatedVideos = new \Illuminate\Pagination\LengthAwarePaginator(
-            array_slice($videosList, $offset, $perPage, true),
+            array_slice($videosList, $offset, $perPage),
             count($videosList),
             $perPage,
             $page,
@@ -148,6 +160,7 @@ class YouTubeController extends Controller
             'keyword' => $keyword,
             'sortBy' => $sortBy,
             'sortOrder' => $sortOrder,
+            'videoType' => $videoType,
         ]);
     }
 }

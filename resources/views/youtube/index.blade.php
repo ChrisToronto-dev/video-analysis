@@ -17,6 +17,11 @@
                     @csrf
                     <div class="input-group">
                         <input type="text" name="keyword" class="form-control" placeholder="Enter keyword (e.g., 정치, 생활정보)" value="{{ $keyword ?? '' }}" required>
+                        <select name="video_type" class="form-select">
+                            <option value="all" {{ ($videoType ?? 'all') == 'all' ? 'selected' : '' }}>All</option>
+                            <option value="shorts" {{ ($videoType ?? 'all') == 'shorts' ? 'selected' : '' }}>Shorts</option>
+                            <option value="video" {{ ($videoType ?? 'all') == 'video' ? 'selected' : '' }}>Video</option>
+                        </select>
                         <button class="btn btn-primary" type="submit">Search</button>
                     </div>
                     @error('keyword')
