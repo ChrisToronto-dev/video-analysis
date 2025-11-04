@@ -50,7 +50,7 @@ class YouTubeController extends Controller
                 }
 
                 if (!empty($videoIds)) {
-                    $videoResponse = $youtube->videos->listVideos('snippet,statistics', [
+                    $videoResponse = $youtube->videos->listVideos('snippet,statistics,contentDetails', [
                         'id' => implode(',', $videoIds),
                     ]);
 
@@ -65,6 +65,7 @@ class YouTubeController extends Controller
                             'link' => 'https://www.youtube.com/watch?v=' . $video['id'],
                             'channelId' => $video['snippet']['channelId'],
                             'channelTitle' => $video['snippet']['channelTitle'],
+                            'duration' => $video['contentDetails']['duration'],
                         ];
                     }
 
@@ -95,9 +96,27 @@ class YouTubeController extends Controller
                 return ($video['viewCount'] ?? 0) >= ($video['subscriberCount'] ?? 0);
             });
 
-            if ($videoType === 'video') {
-                $videosList = array_filter($videosList, function ($video) {
-                    return stripos($video['title'], '#shorts') === false;
+            if ($videoType === 'video' || $videoType === 'shorts') {
+                $videosList = array_filter($videosList, function ($video) use ($videoType) {
+                    $durationInSeconds = 0;
+                    if (isset($video['duration'])) {
+                        try {
+                            $interval = new \DateInterval($video['duration']);
+                            $durationInSeconds = $interval->d * 86400 + $interval->h * 3600 + $interval->i * 60 + $interval->s;
+                        } catch (\Exception $e) {
+                            // Ignore invalid duration format
+                        }
+                    }
+
+                    if ($videoType === 'video') {
+                        return $durationInSeconds > 60 && stripos($video['title'], '#shorts') === false;
+                    }
+
+                    if ($videoType === 'shorts') {
+                        return $durationInSeconds <= 60 || stripos($video['title'], '#shorts') !== false;
+                    }
+
+                    return true;
                 });
             }
 
